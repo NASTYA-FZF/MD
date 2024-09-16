@@ -58,28 +58,38 @@ void MultikMD::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	//получаем дескриптор окна (вроде так называется)
 	Graphics wnd(lpDrawItemStruct->hDC);
 	//заводим буфер для рисования, чтобы не сразу на экран рисовалось
-	Bitmap buffer(lpDrawItemStruct->rcItem.right, lpDrawItemStruct->rcItem.bottom, &wnd);
+	Bitmap buffer(lpDrawItemStruct->rcItem.right - 2 * otstup, lpDrawItemStruct->rcItem.bottom - 2 * otstup, &wnd);
 	//заводим эту штуку для буфера
 	Graphics draw_in_buffer(&buffer);
 
 	//матрица трансформаций (преобразований) пока не работает, хрен пойми почему
 	Matrix matr;
-	//сдвиг небольшой, чтобы атом крайний был не в углу
-	matr.Translate(tranX, tranY);
+	//сдвиг небольшой, чтобы атом крайний был не в углу (не совсем работало)
+	//matr.Translate(otstup, otstup);
 	//масштабироавние под область вывода
 	matr.Scale(scaleX, scaleY);
-	//применение матрицы
-	draw_in_buffer.SetTransform(&matr);
 
 	//заливка в белый
 	draw_in_buffer.Clear(Color::White);
 
 	//цвет для атомов
 	SolidBrush b_atom(Color::Orange);
-
+	PointF points[2];
 	//рисуем атомы
 	for (int i = 0; i < atoms.size(); i++)
-		draw_in_buffer.FillEllipse(&b_atom, (REAL)(atoms[i][0] - r_atom), (REAL)(atoms[i][1] - r_atom), (REAL)(2. * r_atom), (REAL)(2. * r_atom));
+	{
+		//запоминаем левую верхную точку прямоугольника, ограничивающего эллипс (круг)
+		points[0] = PointF((REAL)(atoms[i][0] - r_atom),
+			(REAL)(atoms[i][1] - r_atom));
+		//запоминаем правую нижнюю точку прямоугольника
+		points[1] = PointF((REAL)(atoms[i][0] + r_atom),
+			(REAL)(atoms[i][1] + r_atom));
+		//преобразуем координаты
+		matr.TransformPoints(points, 2);
+		//рисуем точку
+		draw_in_buffer.FillEllipse(&b_atom, points[0].X,
+			points[0].Y, points[1].X - points[0].X, points[1].Y - points[0].Y);
+	}
 
 	//выводи из буфера
 	wnd.DrawImage(&buffer, 0, 0, 0, 0, lpDrawItemStruct->rcItem.right, lpDrawItemStruct->rcItem.bottom, UnitPixel);

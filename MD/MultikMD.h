@@ -23,6 +23,7 @@ public:
 	double r_atom, maxX, maxY, minX, minY;
 	//параметры трансформации изображения
 	double scaleX, scaleY, tranX, tranY;
+	double otstup;
 	//флаг первого запуска, так как параметры трансформации достаточно 1 раз посчитать
 	bool start;
 	//вызывается для перерисовки
