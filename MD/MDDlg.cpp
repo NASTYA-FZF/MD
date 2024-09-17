@@ -102,6 +102,7 @@ void CMDDlg::SetParamMult()
 void CMDDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
+	argon = crystall(100);
 	pic_evolution.atoms = argon.GetPos(); //считываем по кнопке координаты атомов
 	Invalidate(FALSE);
 }
