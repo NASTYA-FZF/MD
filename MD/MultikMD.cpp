@@ -44,7 +44,8 @@ void MultikMD::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	if (start)
 	{
 		start = false; //больше первого запуска не будет
-		CalcMas((double)lpDrawItemStruct->rcItem.right - 2. * tranX, (double)lpDrawItemStruct->rcItem.bottom - 2. * tranY);
+		//вычисление коэффициентов масштабирования
+		CalcMas((double)lpDrawItemStruct->rcItem.right - 2. * otstup, (double)lpDrawItemStruct->rcItem.bottom - 2. * otstup);
 		return;
 	}
 
@@ -58,19 +59,19 @@ void MultikMD::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	//получаем дескриптор окна (вроде так называется)
 	Graphics wnd(lpDrawItemStruct->hDC);
 	//заводим буфер для рисования, чтобы не сразу на экран рисовалось
-	Bitmap buffer(lpDrawItemStruct->rcItem.right - 2 * otstup, lpDrawItemStruct->rcItem.bottom - 2 * otstup, &wnd);
+	Bitmap buffer(lpDrawItemStruct->rcItem.right, lpDrawItemStruct->rcItem.bottom, &wnd);
 	//заводим эту штуку для буфера
 	Graphics draw_in_buffer(&buffer);
+
+	//заливка в белый (делаем до преобразований, а то заливка съедет тоже)
+	draw_in_buffer.Clear(Color::White);
 
 	//матрица трансформаций (преобразований) пока не работает, хрен пойми почему
 	Matrix matr;
 	//сдвиг небольшой, чтобы атом крайний был не в углу (не совсем работало)
-	//matr.Translate(otstup, otstup);
+	matr.Translate(otstup, otstup);
 	//масштабироавние под область вывода
 	matr.Scale(scaleX, scaleY);
-
-	//заливка в белый
-	draw_in_buffer.Clear(Color::White);
 
 	//цвет для атомов
 	SolidBrush b_atom(Color::Orange);

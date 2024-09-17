@@ -21,8 +21,9 @@ public:
 	std::vector<std::vector<double>> atoms;
 	//радиус атомов, максимумы и минимумы изображения
 	double r_atom, maxX, maxY, minX, minY;
-	//параметры трансформации изображения
-	double scaleX, scaleY, tranX, tranY;
+	//параметры масштабирования изображения
+	double scaleX, scaleY;
+	//отступ, чтобы граничные атомы были полностью на картинке
 	double otstup;
 	//флаг первого запуска, так как параметры трансформации достаточно 1 раз посчитать
 	bool start;

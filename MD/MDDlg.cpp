@@ -94,7 +94,7 @@ void CMDDlg::SetParamMult()
 	pic_evolution.maxY = L * b; 
 	pic_evolution.maxX = L * r0;
 	pic_evolution.r_atom = r0 * 0.3; //можно менять число, чтобы подобрать радиус нарисованных точек
-	pic_evolution.otstup = 10; //подобрать (еще раз посмотреть)
+	pic_evolution.otstup = 10; //подобрать 
 }
 
 
