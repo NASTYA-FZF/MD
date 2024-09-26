@@ -38,5 +38,17 @@ public:
 	crystall argon;
 	//установка параметров рисовальщика (максимумов, минимумов, радиуса)
 	void SetParamMult();
+	int iter;
 	afx_msg void OnBnClickedOk();
+	CRITICAL_SECTION cs;
+	HANDLE my_thread;
+	bool flag_sleep, flag_stop;
+	UINT_PTR my_timer;
+	virtual void OnCancel();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnBnClickedPause();
+	afx_msg void OnBnClickedStop();
+	CListBox l_process;
 };
+
+DWORD WINAPI MyThreadFunction(LPVOID lpParam);

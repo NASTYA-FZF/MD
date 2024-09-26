@@ -2,6 +2,7 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <fstream>
 
 //переименовала такой тип для координат, скоростей, чтобы автоматизировать формулы для x y отдельно не вбивать потом
 typedef std::vector<double> vec2D;
@@ -19,13 +20,17 @@ static int L = 20;
 //постоянная больцмана в Дж / К
 static double k_B = 1.38 * 1e-23;
 
-static double delta_t = 0.001;
+static double delta_t = 0.005 * 2 * 1e-12;
+
+static double r1 = 1.1 * r0;
+static double r2 = 1.7 * r0;
 
 //структура, хранящая информацию об атомах
 struct atom
 {
 	vec2D coord;
 	vec2D speed;
+	vec2D Fk;
 
 	//задание координат атома (удобно использовать позже)
 	atom(double x, double y);
@@ -33,6 +38,8 @@ struct atom
 	void SetSpeed(double vx, double vy);
 	//вычтем нормировку
 	void Minus_dv(double dvx, double dvy);
+
+	double rass2_atom(vec2D coord_atom);
 };
 
 //класс, который будет обрабатывать движения атомов
@@ -40,12 +47,15 @@ class crystall
 {
 	//решетка атомов
 	std::vector<atom> setka;
+	int N_atom;
 	//Установить начальные координаты
 	void SetStartCoord();
 	//установить начальные скорости по значению температуры
 	void SetStartSpeed(double T);
 	//проверка суммарного импульса
 	void ControlSpeed();
+
+	double Kr(double r);
 
 public:
 	//конструктор, в котором задаются координаты атомов
@@ -57,15 +67,20 @@ public:
 	std::vector<std::vector<double>> GetPos();
 
 	//Лен_Джонс проекция силы по x и y
+	double len_jons(int num_atom, int coord);
 	double len_jons_x(int num_atom);
 	double len_jons_y(int num_atom);
 
 	//расчёт координат и скоростей
+	void verle_coord();
 	double verle_x(int num_atom);
 	double verle_y(int num_atom);
 
+	void verle_V();
 	double verle_Vx(double F_k,int num_atom);
 	double verle_Vy(double F_k,int num_atom);
+
+	void OneIterationVerle(int iter);
 };
 
 //вычисление модуля начальной скорости по температуре
@@ -74,3 +89,5 @@ double calc_v0(double T);
 double calc_vx(double v0, double r);
 //вычисление проекции скорости по оси y
 double calc_vy(double v0, double r);
+
+int sign(double dx);
