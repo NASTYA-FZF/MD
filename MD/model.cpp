@@ -129,6 +129,7 @@ double crystall::len_jons(int num_atom, int coord)
 			if (r <= r2)
 			{
 				sum += Kr(r) * (p6(r0) / p3(r) - 1) * (setka[num_atom].coord[coord] - setka[i].coord[coord]) / p4(r);
+				ep += Kr(r) * D * (p2(p6(r0 / r)) - 2. * p6(r0 / r));
 			}
 		}
 	}
@@ -137,7 +138,6 @@ double crystall::len_jons(int num_atom, int coord)
 
 void crystall::verle_coord()
 {
-	ofstream my_out("vne.txt", ios::app);
 	for (int i = 0; i < N_atom; i++)
 	{
 		for (int j = 0; j < 2; j++)
@@ -154,7 +154,6 @@ void crystall::verle_coord()
 			if (setka[i].coord[j] < 0 || setka[i].coord[j] > L * r0)
 			{
 				MessageBox(NULL, L"Вне ячейки", L"Осторожно!", MB_TASKMODAL);
-				my_out << i << "\t" << j << "\t" << setka[i].coord[j] << endl;
 			}
 		}
 	}
@@ -167,6 +166,7 @@ void crystall::verle_V()
 		for (int j = 0; j < 2; j++)
 		{
 			setka[i].speed[j] += (-len_jons(i, j) + setka[i].Fk[j]) * delta_t / (2. * m);
+			ek += m * p2(setka[i].speed[j]) / 2;
 			sum_V2 += m * p2(setka[i].speed[j]) / S;
 		}
 	}
@@ -174,8 +174,12 @@ void crystall::verle_V()
 
 void crystall::OneIterationVerle(int iter)
 {
+	ep = ek = 0;
 	verle_coord();
 	verle_V();
+	energyEk.push_back(ek / eV);
+	energyV.push_back(0.5 * ep / eV);
+	energyE.push_back((ek + 0.5 * ep) / eV);
 
 	if (iter % S == 0)
 	{
@@ -183,6 +187,17 @@ void crystall::OneIterationVerle(int iter)
 	}
 }
 
+void crystall::printEnergy(string fileName)
+{
+	ofstream file_out(fileName);
+
+	for (int i = 0; i < energyE.size(); i++)
+	{
+		file_out << i + 1 << "\t" << energyEk[i] << "\t" << energyV[i] << "\t" << energyE[i] << endl;
+	}
+
+	file_out.close();
+}
 
 atom::atom(double x, double y)
 {
@@ -207,12 +222,10 @@ double atom::rass2_atom(vec2D coord_atom)
 {
 	double dx = coord[0] - coord_atom[0], dy = coord[1] - coord_atom[1];
 
-	double a1 = sign(dx) * L * r0, a2 = sign(dy) * L * r0;
-
 	if (abs(dx) > L * r0 / 2)
-		dx -= a1;
+		dx -= sign(dx) * L * r0;
 	if (abs(dy) > L * r0 / 2)
-		dy -= a2;
+		dy -= sign(dy) * L * r0;
 
 	return p2(dx) + p2(dy);
 }

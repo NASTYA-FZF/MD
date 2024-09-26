@@ -129,7 +129,8 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 {
 	CMDDlg* my_process = (CMDDlg*)lpParam;
 	my_process->iter = 1;
-	while (!my_process->flag_stop)
+	//while (!my_process->flag_stop)
+	while (my_process->iter < 10)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);
@@ -139,6 +140,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 		my_process->iter++;
 		LeaveCriticalSection(&my_process->cs);
 	}
+	my_process->argon.printEnergy("energy.txt");
 	return 0;
 }
 

@@ -52,7 +52,7 @@ class crystall
 	int N_atom;
 	double sum_V2;
 	double T;
-	double bet;
+	double bet, ek, ep;
 
 	std::vector<double> energyE, energyV, energyEk;
 	//”становить начальные координаты
@@ -86,6 +86,8 @@ public:
 	void verle_V();
 
 	void OneIterationVerle(int iter);
+
+	void printEnergy(std::string fileName);
 };
 
 //вычисление модул€ начальной скорости по температуре
