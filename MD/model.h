@@ -71,8 +71,8 @@ class crystall
 public:
 	//конструктор, в котором задаются координаты атомов
 	crystall() { srand(time(NULL)); sum_V2 = 0;
-	setka.push_back(atom(4.1 * r0, 5 * b));
-	setka.push_back(atom(4.9 * r0, 5 * b));
+	setka.push_back(atom(4.01 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
 	N_atom = 2;
 	}
 	//конструктор, в котором задаются начальные координаты и скорости

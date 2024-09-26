@@ -142,7 +142,7 @@ void crystall::verle_coord()
 	{
 		for (int j = 0; j < 2; j++)
 		{
-			if (setka[i].Fk[j] != 0) 
+			if (setka[i].Fk[j] == 0) 
 				setka[i].Fk[j] = -len_jons(i, j);
 			setka[i].coord[j] += setka[i].speed[j] * delta_t + setka[i].Fk[j] * p2(delta_t) / (2. * m);
 
