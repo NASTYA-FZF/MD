@@ -11,10 +11,10 @@ using namespace std;
 void crystall::SetStartCoord()
 {
 	//цикл по вертикали (<= потому что я думаю, что на второй границе тоже должны быть частицы)
-	for (int y = 0; y <= L; y++)
+	for (int y = 0; y < L; y++)
 	{
 		//цикл по горизонтали (<= по той же причине)
-		for (int x = 0; x <= L; x++)
+		for (int x = 0; x < L; x++)
 		{
 			//если остаток от деления на 2 будет 1, то нечетные ряды (ограничение по х нужно, чтобы не вылезло за прямоугольник)
 			if (y % 2 == 1 && x < L)
@@ -105,11 +105,11 @@ double crystall::len_jons(int num_atom, int coord)
 
 			if (r <= r2)
 			{
-				sum += mnog * Kr(r) * (p6(r0) / p3(r) - 1) * (setka[num_atom].coord[coord] - setka[i].coord[coord]) / p4(r);
+				sum += Kr(r) * (p6(r0) / p3(r) - 1) * (setka[num_atom].coord[coord] - setka[i].coord[coord]) / p4(r);
 			}
 		}
 	}
-	return sum;
+	return mnog * sum;
 }
 
 double crystall::len_jons_x(int num_atom)
@@ -262,10 +262,12 @@ double atom::rass2_atom(vec2D coord_atom)
 {
 	double dx = coord[0] - coord_atom[0], dy = coord[1] - coord_atom[1];
 
-	if (dx > L * r0 / 2)
-		dx -= sign(dx) * L;
-	if (dy > L * r0 / 2)
-		dy -= sign(dy) * L;
+	double a1 = sign(dx) * L * r0, a2 = sign(dy) * L * r0;
+
+	if (abs(dx) > L * r0 / 2)
+		dx -= a1;
+	if (abs(dy) > L * r0 / 2)
+		dy -= a2;
 
 	return p2(dx) + p2(dy);
 }

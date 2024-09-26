@@ -59,7 +59,7 @@ class crystall
 
 public:
 	//конструктор, в котором задаются координаты атомов
-	crystall() {}
+	crystall() { srand(time(NULL)); }
 	//конструктор, в котором задаются начальные координаты и скорости
 	crystall(double T);
 

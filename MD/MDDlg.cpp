@@ -133,7 +133,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);
-		Sleep(20);
+		Sleep(10);
 		EnterCriticalSection(&my_process->cs);
 		my_process->argon.OneIterationVerle(my_process->iter);
 		my_process->iter++;
