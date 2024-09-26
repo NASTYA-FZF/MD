@@ -12,7 +12,8 @@ static double m = 39.948 / (6.02 * 1e26);
 //равновесное расстояние между центрами атомов (по факту диаметр атома, если правильно поняла) в м
 static double r0 = 0.382 * 1e-9;
 //глубина потенциальной ямы на графике в Дж
-static double D = 0.0103 * 1.6 * 1e-19;
+static double eV = 1.6 * 1e-19;
+static double D = 0.0103 * eV;
 //величина b в кристаллической решетке (рис. 1, стр. 23 методички) в м
 static double b = sqrt(3) * r0 / 2;
 //это один размер по Lx Ly так как Lx это 20 а, Ly это 20 b
@@ -52,6 +53,8 @@ class crystall
 	double sum_V2;
 	double T;
 	double bet;
+
+	std::vector<double> energyE, energyV, energyEk;
 	//Установить начальные координаты
 	void SetStartCoord();
 	//установить начальные скорости по значению температуры
