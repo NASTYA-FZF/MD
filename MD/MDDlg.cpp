@@ -98,7 +98,7 @@ void CMDDlg::SetParamMult()
 {
 	pic_evolution.maxY = L * b; 
 	pic_evolution.maxX = L * r0;
-	pic_evolution.r_atom = r0 * 0.5; //можно менять число, чтобы подобрать радиус нарисованных точек
+	pic_evolution.r_atom = r0 * 0.2; //можно менять число, чтобы подобрать радиус нарисованных точек
 	pic_evolution.otstup = 15; //подобрать 
 }
 
@@ -107,7 +107,7 @@ void CMDDlg::SetParamMult()
 void CMDDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
-	argon = crystall(100);
+	//argon = crystall(100);
 	
 	flag_stop = false;
 	flag_sleep = false;
@@ -129,12 +129,13 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 {
 	CMDDlg* my_process = (CMDDlg*)lpParam;
 	my_process->iter = 1;
-	//while (!my_process->flag_stop)
-	while (my_process->iter < 10)
+
+	//while (my_process->iter < 20)
+	while (!my_process->flag_stop)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);
-		Sleep(10);
+		Sleep(5);
 		EnterCriticalSection(&my_process->cs);
 		my_process->argon.OneIterationVerle(my_process->iter);
 		my_process->iter++;

@@ -17,11 +17,11 @@ static double D = 0.0103 * eV;
 //величина b в кристаллической решетке (рис. 1, стр. 23 методички) в м
 static double b = sqrt(3) * r0 / 2;
 //это один размер по Lx Ly так как Lx это 20 а, Ly это 20 b
-static int L = 20;
+static int L = 6;
 //постоянная больцмана в Дж / К
 static double k_B = 1.38 * 1e-23;
 
-static double delta_t = 0.005 * 2 * 1e-12;
+static double delta_t = 0.005 * 2 * 1e-8;
 
 static double r1 = 1.15 * r0;
 static double r2 = 1.75 * r0;
@@ -70,7 +70,11 @@ class crystall
 
 public:
 	//конструктор, в котором задаются координаты атомов
-	crystall() { srand(time(NULL)); sum_V2 = 0; }
+	crystall() { srand(time(NULL)); sum_V2 = 0;
+	setka.push_back(atom(4.1 * r0, 5 * b));
+	setka.push_back(atom(4.9 * r0, 5 * b));
+	N_atom = 2;
+	}
 	//конструктор, в котором задаются начальные координаты и скорости
 	crystall(double _T);
 

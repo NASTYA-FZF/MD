@@ -142,7 +142,8 @@ void crystall::verle_coord()
 	{
 		for (int j = 0; j < 2; j++)
 		{
-			setka[i].Fk[j] = -len_jons(i, j);
+			if (setka[i].Fk[j] != 0) 
+				setka[i].Fk[j] = -len_jons(i, j);
 			setka[i].coord[j] += setka[i].speed[j] * delta_t + setka[i].Fk[j] * p2(delta_t) / (2. * m);
 
 			if (setka[i].coord[j] < 0)
@@ -161,11 +162,15 @@ void crystall::verle_coord()
 
 void crystall::verle_V()
 {
+	double Fk;
 	for (int i = 0; i < N_atom; i++)
 	{
 		for (int j = 0; j < 2; j++)
 		{
-			setka[i].speed[j] += (-len_jons(i, j) + setka[i].Fk[j]) * delta_t / (2. * m);
+			Fk = -len_jons(i, j);
+			setka[i].speed[j] += (Fk + setka[i].Fk[j]) * delta_t / (2. * m);
+
+			setka[i].Fk[j] = Fk;
 			ek += m * p2(setka[i].speed[j]) / 2;
 			sum_V2 += m * p2(setka[i].speed[j]) / S;
 		}
@@ -181,10 +186,10 @@ void crystall::OneIterationVerle(int iter)
 	energyV.push_back(0.5 * ep / eV);
 	energyE.push_back((ek + 0.5 * ep) / eV);
 
-	if (iter % S == 0)
-	{
-		perenormirovka();
-	}
+	//if (iter % S == 0)
+	//{
+	//	perenormirovka();
+	//}
 }
 
 void crystall::printEnergy(string fileName)
