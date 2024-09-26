@@ -22,8 +22,9 @@ static double k_B = 1.38 * 1e-23;
 
 static double delta_t = 0.005 * 2 * 1e-12;
 
-static double r1 = 1.1 * r0;
-static double r2 = 1.7 * r0;
+static double r1 = 1.15 * r0;
+static double r2 = 1.75 * r0;
+static int S = 8;
 
 //структура, хран€ща€ информацию об атомах
 struct atom
@@ -48,6 +49,9 @@ class crystall
 	//решетка атомов
 	std::vector<atom> setka;
 	int N_atom;
+	double sum_V2;
+	double T;
+	double bet;
 	//”становить начальные координаты
 	void SetStartCoord();
 	//установить начальные скорости по значению температуры
@@ -57,28 +61,26 @@ class crystall
 
 	double Kr(double r);
 
+	double betta();
+
+	void perenormirovka();
+
 public:
 	//конструктор, в котором задаютс€ координаты атомов
-	crystall() { srand(time(NULL)); }
+	crystall() { srand(time(NULL)); sum_V2 = 0; }
 	//конструктор, в котором задаютс€ начальные координаты и скорости
-	crystall(double T);
+	crystall(double _T);
 
 	//возвращает набор координат всех атомов (дл€ рисовальщика)
 	std::vector<std::vector<double>> GetPos();
 
 	//Ћен_ƒжонс проекци€ силы по x и y
 	double len_jons(int num_atom, int coord);
-	double len_jons_x(int num_atom);
-	double len_jons_y(int num_atom);
 
 	//расчЄт координат и скоростей
 	void verle_coord();
-	double verle_x(int num_atom);
-	double verle_y(int num_atom);
 
 	void verle_V();
-	double verle_Vx(double F_k,int num_atom);
-	double verle_Vy(double F_k,int num_atom);
 
 	void OneIterationVerle(int iter);
 };

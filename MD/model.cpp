@@ -31,19 +31,19 @@ void crystall::SetStartSpeed(double T)
 {
 	double v0 = calc_v0(T); //модуль скорости 
 	double sum_vx = 0, sum_vy = 0; //вычисляем суммы импульсов по проекциям
-	int num_atom = setka.size(); //число атомов
+	//int num_atom = setka.size(); //число атомов
 
-	for (int i = 0; i < num_atom; i++)
+	for (int i = 0; i < N_atom; i++)
 	{
 		setka[i].SetSpeed(calc_vx(v0, random), calc_vy(v0, random)); //устанавливаем скорость
 		sum_vx += setka[i].speed[0];
 		sum_vy += setka[i].speed[1];
 	}
 
-	sum_vx /= num_atom;
-	sum_vy /= num_atom;
+	sum_vx /= N_atom;
+	sum_vy /= N_atom;
 
-	for (int i = 0; i < num_atom; i++)
+	for (int i = 0; i < N_atom; i++)
 	{
 		setka[i].Minus_dv(sum_vx, sum_vy); //вычитаем вычисленные поправки
 	}
@@ -53,21 +53,42 @@ void crystall::SetStartSpeed(double T)
 
 void crystall::ControlSpeed()
 {
-	double sum_v = 0;
-	for (int i = 0; i < setka.size(); i++)
+	double sum_vx = 0, sum_vy = 0;
+	for (int i = 0; i < N_atom; i++)
 	{
-		sum_v += setka[i].speed[0] + setka[i].speed[1]; //суммарный импульс
+		sum_vx += setka[i].speed[0];
+		sum_vy += setka[i].speed[1]; //суммарный импульс
 	}
-	sum_v /= setka.size();
+	sum_vx /= N_atom;
+	sum_vy /= N_atom;
 }
 
 double crystall::Kr(double r)
 {
-	if (r > r1)
-		return p2(1 - p2((r - r1) / (r1 - r2)));
-	if (r <= r1)
+	if (r >= r1)
+		return p2(1 - p2(r - r1) / p2(r1 - r2));
+	if (r < r1)
 		return 1.;
 	return 0;
+}
+
+double crystall::betta()
+{
+	return sqrt(2. * N_atom * k_B * T / sum_V2);
+}
+
+void crystall::perenormirovka()
+{
+	bet = betta();
+	sum_V2 = 0;
+
+	for (int i = 0; i < N_atom; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			setka[i].speed[j] *= bet;
+		}
+	}
 }
 
 int sign(double dx)
@@ -75,8 +96,11 @@ int sign(double dx)
 	return dx >= 0 ? 1 : -1;
 }
 
-crystall::crystall(double T)
+crystall::crystall(double _T)
 {
+	T = _T;
+	sum_V2 = 0;
+	bet = 0;
 	SetStartCoord();
 	SetStartSpeed(T);
 }
@@ -95,7 +119,6 @@ std::vector<std::vector<double>> crystall::GetPos()
 double crystall::len_jons(int num_atom, int coord)
 {
 	double r, sum = 0.;
-	double mnog = -12 * D * p6(r0);
 
 	for (int i = 0; i < N_atom; i++)
 	{
@@ -109,52 +132,7 @@ double crystall::len_jons(int num_atom, int coord)
 			}
 		}
 	}
-	return mnog * sum;
-}
-
-double crystall::len_jons_x(int num_atom)
-{
-	double sum = 0;
-
-	for (int i = 0; i < setka.size(); i++)
-	{
-		if (i != num_atom)
-		{
-			double r = (setka[num_atom].coord[0] - setka[i].coord[0]) * (setka[num_atom].coord[0] - setka[i].coord[0]) +
-				(setka[num_atom].coord[1] - setka[i].coord[1]) * (setka[num_atom].coord[1] - setka[i].coord[1]);
-
-			double a1 = r0 * r0 * r0 * r0 * r0 * r0;
-			double a2 = a1 / r / r / r;
-			double a3 = a2 - 1;
-			double a4 = a3 * (setka[num_atom].coord[0] - setka[i].coord[0]);
-			double a5 = a4 / r / r / r / r;
-
-			//sum += (pow(r0, 6) / r / r / r - 1) * (setka[num_atom].coord[0] - setka[i].coord[0]) / r / r / r / r;
-			sum += (a2 - 1) * (setka[num_atom].coord[0] - setka[i].coord[0]) / r / r / r / r;
-		}
-
-	}
-
-	return -12 * D * r0 * r0 * r0 * r0 * r0 * r0 * sum;
-}
-
-double crystall::len_jons_y(int num_atom)
-{
-	double sum = 0;
-
-	for (int i = 0; i < setka.size(); i++)
-	{
-		if (i != num_atom)
-		{
-			double r = (setka[num_atom].coord[0] - setka[i].coord[0]) * (setka[num_atom].coord[0] - setka[i].coord[0]) +
-				(setka[num_atom].coord[1] - setka[i].coord[1]) * (setka[num_atom].coord[1] - setka[i].coord[1]);
-
-			sum += (pow(r0, 6) / pow(r, 3) - 1) * (setka[num_atom].coord[1] - setka[i].coord[1]) / pow(r, 4);
-		}
-
-	}
-
-	return -12 * D * sum;
+	return -12. * D * p6(r0) * sum;
 }
 
 void crystall::verle_coord()
@@ -182,27 +160,6 @@ void crystall::verle_coord()
 	}
 }
 
-double crystall::verle_x(int num_atom)
-{
-	for (int i = 0; i < setka.size(); i++)
-	{
-		setka[i].Fk[0] = -len_jons_x(i);
-		setka[i].coord[0] += setka[i].speed[0] * delta_t + setka[i].Fk[0] / (2 * m) * delta_t * delta_t;
-	}
-	return 0;
-}
-
-double crystall::verle_y(int num_atom)
-{
-	for (int i = 0; i < setka.size(); i++)
-	{
-		setka[i].Fk[1] = -len_jons_y(i);
-		setka[i].coord[1] += setka[i].speed[1] * delta_t + setka[i].Fk[1] / (2 * m) * delta_t * delta_t;
-	}
-	return 0;
-}
-
-
 void crystall::verle_V()
 {
 	for (int i = 0; i < N_atom; i++)
@@ -210,32 +167,20 @@ void crystall::verle_V()
 		for (int j = 0; j < 2; j++)
 		{
 			setka[i].speed[j] += (-len_jons(i, j) + setka[i].Fk[j]) * delta_t / (2. * m);
+			sum_V2 += m * p2(setka[i].speed[j]) / S;
 		}
 	}
-}
-//F_k - с предыдущего шага, его нужно записывать куда-то 
-double crystall::verle_Vx(double F_k,int num_atom)
-{
-	for (int i = 0; i < setka.size(); i++)
-	{
-		setka[i].speed[0] += (-len_jons_x(i) + setka[i].Fk[0]) / (2 * m) * delta_t;
-	}
-	return 0;
-}
-
-double crystall::verle_Vy(double F_k,int num_atom)
-{
-	for (int i = 0; i < setka.size(); i++)
-	{
-		setka[i].speed[1] += (-len_jons_y(i) + setka[i].Fk[1]) / (2 * m) * delta_t;
-	}
-	return 0;
 }
 
 void crystall::OneIterationVerle(int iter)
 {
 	verle_coord();
 	verle_V();
+
+	if (iter % S == 0)
+	{
+		perenormirovka();
+	}
 }
 
 
