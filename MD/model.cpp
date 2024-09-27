@@ -65,6 +65,7 @@ void crystall::ControlSpeed()
 
 double crystall::Kr(double r)
 {
+	r = sqrt(r);
 	if (r >= r1)
 		return p2(1 - p2(r - r1) / p2(r1 - r2));
 	if (r < r1)
@@ -118,7 +119,8 @@ std::vector<std::vector<double>> crystall::GetPos()
 
 double crystall::len_jons(int num_atom, int coord)
 {
-	double r, sum = 0.;
+	/*double r, sum = 0.;
+	double a1, a2, a3, a4, a5;
 
 	for (int i = 0; i < N_atom; i++)
 	{
@@ -128,12 +130,63 @@ double crystall::len_jons(int num_atom, int coord)
 
 			if (r <= r2)
 			{
-				sum += Kr(r) * (p6(r0) / p3(r) - 1) * (setka[num_atom].coord[coord] - setka[i].coord[coord]) / p4(r);
+				a1 = Kr(r);
+				a2 = (p6(r0) / p3(r) - 1);
+				a3 = (setka[num_atom].coord[coord] - setka[i].coord[coord]);
+				a4 = p4(r);
+				a5 = a1 * a2 * a3 / a4;
+				sum += a5;
 				ep += Kr(r) * D * (p2(p6(r0 / r)) - 2. * p6(r0 / r));
 			}
 		}
 	}
-	return -12. * D * p6(r0) * sum;
+	return -12. * D * p6(r0) * sum;*/
+
+	double r06 = p6(r0);
+	double dx, dy, rPow2, r8, r6, r;
+	double pered_dx;
+	double summa = 0;
+	double rdiff2 = (r1 - r2) * (r1 - r2);
+	double rdiffr;
+	double rdiffr2;
+	double Kr;
+
+	for (int i = 0; i < N_atom; i++)
+	{
+		if (i != num_atom)
+		{
+			dx = setka[num_atom].coord[0] - setka[i].coord[0];
+			dy = setka[num_atom].coord[1] - setka[i].coord[1];
+
+			if (abs(dx) > 0.5 * L * r0)
+				dx -= sign(dx) * L * r0;
+			if (abs(dy) > 0.5 * L * r0)
+				dy -= sign(dy) * L * r0;
+
+			rPow2 = p2(dx) + p2(dy);
+			r = sqrt(rPow2);
+			r6 = rPow2 * rPow2 * rPow2;
+			r8 = rPow2 * rPow2 * rPow2 * rPow2;
+
+			if (r > r2) continue;
+			if (r > r1)
+			{
+				rdiffr = r - r1;
+				rdiffr2 = rdiffr * rdiffr;
+				Kr = (1 - rdiffr2 / rdiff2) * (1 - rdiffr2 / rdiff2);
+			}
+			else
+				Kr = 1;
+
+			pered_dx = Kr * (r06 / r6 - 1) / r8;
+
+			if (coord == 0)
+				summa += pered_dx * dx;
+			else
+				summa += pered_dx * dy;
+		}
+	}
+	return -12. * D * r06 * summa;
 }
 
 void crystall::verle_coord()

@@ -8,7 +8,7 @@
 typedef std::vector<double> vec2D;
 
 //масса атома аргона (из а.е.м. перевеодим в кг) не будет ли хранитьс€ ноль?
-static double m = 39.948 / (6.02 * 1e26);
+static double m = 66.354 * 1e-27;
 //равновесное рассто€ние между центрами атомов (по факту диаметр атома, если правильно пон€ла) в м
 static double r0 = 0.382 * 1e-9;
 //глубина потенциальной €мы на графике в ƒж
@@ -17,11 +17,11 @@ static double D = 0.0103 * eV;
 //величина b в кристаллической решетке (рис. 1, стр. 23 методички) в м
 static double b = sqrt(3) * r0 / 2;
 //это один размер по Lx Ly так как Lx это 20 а, Ly это 20 b
-static int L = 6;
+static int L = 20;
 //посто€нна€ больцмана в ƒж /  
 static double k_B = 1.38 * 1e-23;
 
-static double delta_t = 0.005 * 2 * 1e-8;
+static double delta_t = 0.005 * 2 * 1e-12;
 
 static double r1 = 1.15 * r0;
 static double r2 = 1.75 * r0;
@@ -73,7 +73,14 @@ public:
 	crystall() { srand(time(NULL)); sum_V2 = 0;
 	setka.push_back(atom(4.01 * r0, 5 * b));
 	setka.push_back(atom(5 * r0, 5 * b));
-	N_atom = 2;
+	setka.push_back(atom(5 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
+	setka.push_back(atom(5 * r0, 5 * b));
+	N_atom = setka.size();
 	}
 	//конструктор, в котором задаютс€ начальные координаты и скорости
 	crystall(double _T);
