@@ -135,7 +135,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);
-		Sleep(500);
+		Sleep(5);
 		EnterCriticalSection(&my_process->cs);
 		my_process->argon.OneIterationVerle(my_process->iter);
 		my_process->iter++;
