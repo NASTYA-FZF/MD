@@ -17,11 +17,11 @@ static double D = 0.0103 * eV;
 //величина b в кристаллической решетке (рис. 1, стр. 23 методички) в м
 static double b = sqrt(3) * r0 / 2;
 //это один размер по Lx Ly так как Lx это 20 а, Ly это 20 b
-static int L = 6;
+static int L = 20;
 //посто€нна€ больцмана в ƒж /  
 static double k_B = 1.38 * 1e-23;
 
-static double delta_t = 0.005 * 2 * 1e-8;
+static double delta_t = 0.005 * 2 * 1e-12;
 
 static double r1 = 1.15 * r0;
 static double r2 = 1.75 * r0;
@@ -41,7 +41,7 @@ struct atom
 	//вычтем нормировку
 	void Minus_dv(double dvx, double dvy);
 
-	double rass2_atom(vec2D coord_atom);
+	double rass2_atom(vec2D coord_atom, int num_coord, double& res);
 };
 
 //класс, который будет обрабатывать движени€ атомов

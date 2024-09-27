@@ -119,16 +119,17 @@ std::vector<std::vector<double>> crystall::GetPos()
 double crystall::len_jons(int num_atom, int coord)
 {
 	double r, sum = 0.;
+	double d_res;
 
 	for (int i = 0; i < N_atom; i++)
 	{
 		if (i != num_atom)
 		{
-			r = setka[num_atom].rass2_atom(setka[i].coord);
+			r = setka[num_atom].rass2_atom(setka[i].coord, coord, d_res);
 
 			if (r <= r2)
 			{
-				sum += Kr(r) * (p6(r0) / p3(r) - 1) * (setka[num_atom].coord[coord] - setka[i].coord[coord]) / p4(r);
+				sum += Kr(r) * (p6(r0) / p3(r) - 1) * d_res / p4(r);
 				ep += Kr(r) * D * (p2(p6(r0 / r)) - 2. * p6(r0 / r));
 			}
 		}
@@ -223,7 +224,7 @@ void atom::Minus_dv(double dvx, double dvy)
 	speed[1] -= dvy;
 }
 
-double atom::rass2_atom(vec2D coord_atom)
+double atom::rass2_atom(vec2D coord_atom, int num_coord, double& res)
 {
 	double dx = coord[0] - coord_atom[0], dy = coord[1] - coord_atom[1];
 
@@ -231,6 +232,11 @@ double atom::rass2_atom(vec2D coord_atom)
 		dx -= sign(dx) * L * r0;
 	if (abs(dy) > L * r0 / 2)
 		dy -= sign(dy) * L * r0;
+
+	if (num_coord == 0)
+		res = dx;
+	else
+		res = dy;
 
 	return p2(dx) + p2(dy);
 }
