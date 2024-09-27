@@ -239,10 +239,10 @@ void crystall::OneIterationVerle(int iter)
 	energyV.push_back(0.5 * ep / eV);
 	energyE.push_back((ek + 0.5 * ep) / eV);
 
-	//if (iter % S == 0)
-	//{
-	//	perenormirovka();
-	//}
+	if (iter % S == 0)
+	{
+		perenormirovka();
+	}
 }
 
 void crystall::printEnergy(string fileName)
