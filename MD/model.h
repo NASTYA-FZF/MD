@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 //переименовала такой тип для координат, скоростей, чтобы автоматизировать формулы для x y отдельно не вбивать потом
 typedef std::vector<double> vec2D;
@@ -32,7 +33,8 @@ struct atom
 {
 	vec2D coord;
 	vec2D speed;
-	vec2D Fk;
+	vec2D Fk_prev;
+	vec2D Fk_cur;
 
 	//задание координат атома (удобно использовать позже)
 	atom(double x, double y);
@@ -70,18 +72,7 @@ class crystall
 
 public:
 	//конструктор, в котором задаются координаты атомов
-	crystall() { srand(time(NULL)); sum_V2 = 0;
-	setka.push_back(atom(4.01 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	setka.push_back(atom(5 * r0, 5 * b));
-	N_atom = setka.size();
-	}
+	crystall() { srand(time(NULL)); sum_V2 = 0; N_atom = setka.size(); }
 	//конструктор, в котором задаются начальные координаты и скорости
 	crystall(double _T);
 
@@ -89,7 +80,7 @@ public:
 	std::vector<std::vector<double>> GetPos();
 
 	//Лен_Джонс проекция силы по x и y
-	double len_jons(int num_atom, int coord);
+	void len_jons();
 
 	//расчёт координат и скоростей
 	void verle_coord();
@@ -99,6 +90,8 @@ public:
 	void OneIterationVerle(int iter);
 
 	void printEnergy(std::string fileName);
+
+	double calc_Ep();
 };
 
 //вычисление модуля начальной скорости по температуре

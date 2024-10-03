@@ -107,7 +107,7 @@ void CMDDlg::SetParamMult()
 void CMDDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
-	argon = crystall(100);
+	argon = crystall(200);
 	
 	flag_stop = false;
 	flag_sleep = false;
@@ -121,7 +121,7 @@ void CMDDlg::OnCancel()
 	DeleteCriticalSection(&cs);
 	flag_stop = true;
 	KillTimer(my_timer);
-	Sleep(100);
+	Sleep(1000);
 	CDialogEx::OnCancel();
 }
 
@@ -130,8 +130,8 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	CMDDlg* my_process = (CMDDlg*)lpParam;
 	my_process->iter = 1;
 
-	//while (my_process->iter < 20)
-	while (!my_process->flag_stop)
+	while (my_process->iter < 10000)
+	//while (!my_process->flag_stop)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);

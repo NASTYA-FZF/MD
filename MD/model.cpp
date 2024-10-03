@@ -117,46 +117,30 @@ std::vector<std::vector<double>> crystall::GetPos()
 	return res;
 }
 
-double crystall::len_jons(int num_atom, int coord)
+void crystall::len_jons()
 {
-	/*double r, sum = 0.;
-	double a1, a2, a3, a4, a5;
-
-	for (int i = 0; i < N_atom; i++)
-	{
-		if (i != num_atom)
-		{
-			r = setka[num_atom].rass2_atom(setka[i].coord);
-
-			if (r <= r2)
-			{
-				a1 = Kr(r);
-				a2 = (p6(r0) / p3(r) - 1);
-				a3 = (setka[num_atom].coord[coord] - setka[i].coord[coord]);
-				a4 = p4(r);
-				a5 = a1 * a2 * a3 / a4;
-				sum += a5;
-				ep += Kr(r) * D * (p2(p6(r0 / r)) - 2. * p6(r0 / r));
-			}
-		}
-	}
-	return -12. * D * p6(r0) * sum;*/
-
 	double r06 = p6(r0);
 	double dx, dy, rPow2, r8, r6, r;
 	double pered_dx;
-	double summa = 0;
+	double summaX = 0;
+	double summaY = 0;
 	double rdiff2 = (r1 - r2) * (r1 - r2);
 	double rdiffr;
 	double rdiffr2;
 	double Kr;
+	double mnog = 12. * D * r06;
 
 	for (int i = 0; i < N_atom; i++)
 	{
-		if (i != num_atom)
+		setka[i].Fk_cur[0] = setka[i].Fk_cur[1] = 0;
+	}
+
+	for (int at = 0; at < N_atom; at++)
+	{
+		for (int i = at + 1; i < N_atom; i++)
 		{
-			dx = setka[num_atom].coord[0] - setka[i].coord[0];
-			dy = setka[num_atom].coord[1] - setka[i].coord[1];
+			dx = setka[at].coord[0] - setka[i].coord[0];
+			dy = setka[at].coord[1] - setka[i].coord[1];
 
 			if (abs(dx) > 0.5 * L * r0)
 				dx -= sign(dx) * L * r0;
@@ -180,13 +164,15 @@ double crystall::len_jons(int num_atom, int coord)
 
 			pered_dx = Kr * (r06 / r6 - 1) / r8;
 
-			if (coord == 0)
-				summa += pered_dx * dx;
-			else
-				summa += pered_dx * dy;
+			summaX = pered_dx * dx;
+			summaY = pered_dx * dy;
+
+			setka[at].Fk_cur[0] += mnog * summaX;
+			setka[at].Fk_cur[1] += mnog * summaY;
+			setka[i].Fk_cur[0] -= mnog * summaX;
+			setka[i].Fk_cur[1] -= mnog * summaY;
 		}
 	}
-	return -12. * D * r06 * summa;
 }
 
 void crystall::verle_coord()
@@ -195,35 +181,26 @@ void crystall::verle_coord()
 	{
 		for (int j = 0; j < 2; j++)
 		{
-			if (setka[i].Fk[j] == 0) 
-				setka[i].Fk[j] = -len_jons(i, j);
-			setka[i].coord[j] += setka[i].speed[j] * delta_t + setka[i].Fk[j] * p2(delta_t) / (2. * m);
+			setka[i].Fk_prev[j] = setka[i].Fk_cur[j];
+			setka[i].coord[j] += setka[i].speed[j] * delta_t + setka[i].Fk_prev[j] * p2(delta_t) / (2. * m);
 
 			if (setka[i].coord[j] < 0)
 				setka[i].coord[j] += L * r0;
 			else
 				if (setka[i].coord[j] > L * r0)
 					setka[i].coord[j] -= L * r0;
-			
-			if (setka[i].coord[j] < 0 || setka[i].coord[j] > L * r0)
-			{
-				MessageBox(NULL, L"Вне ячейки", L"Осторожно!", MB_TASKMODAL);
-			}
 		}
 	}
 }
 
 void crystall::verle_V()
 {
-	double Fk;
 	for (int i = 0; i < N_atom; i++)
 	{
 		for (int j = 0; j < 2; j++)
 		{
-			Fk = -len_jons(i, j);
-			setka[i].speed[j] += (Fk + setka[i].Fk[j]) * delta_t / (2. * m);
+			setka[i].speed[j] += (setka[i].Fk_cur[j] + setka[i].Fk_prev[j]) * delta_t / (2. * m);
 
-			setka[i].Fk[j] = Fk;
 			ek += m * p2(setka[i].speed[j]) / 2;
 			sum_V2 += m * p2(setka[i].speed[j]) / S;
 		}
@@ -232,12 +209,24 @@ void crystall::verle_V()
 
 void crystall::OneIterationVerle(int iter)
 {
-	ep = ek = 0;
+	if (iter == 1)
+	{
+		len_jons();
+		ep = ek = 0;
+	}
+
 	verle_coord();
+	len_jons();
 	verle_V();
-	energyEk.push_back(ek / eV);
-	energyV.push_back(0.5 * ep / eV);
-	energyE.push_back((ek + 0.5 * ep) / eV);
+	calc_Ep();
+
+	if (iter % 100 == 0)
+	{
+		energyEk.push_back(0.01 * ek / eV);
+		energyV.push_back(0.01 * ep / eV);
+		energyE.push_back(energyEk.back() + energyV.back());
+		ep = ek = 0;
+	}
 
 	if (iter % S == 0)
 	{
@@ -248,20 +237,78 @@ void crystall::OneIterationVerle(int iter)
 void crystall::printEnergy(string fileName)
 {
 	ofstream file_out(fileName);
-
+	string enE, enEk, enEp;
 	for (int i = 0; i < energyE.size(); i++)
 	{
-		file_out << i + 1 << "\t" << energyEk[i] << "\t" << energyV[i] << "\t" << energyE[i] << endl;
+		enE = to_string(energyE[i]);
+		enEk = to_string(energyEk[i]);
+		enEp = to_string(energyV[i]);
+
+		replace(enE.begin(), enE.end(), '.', ',');
+		replace(enEk.begin(), enEk.end(), '.', ',');
+		replace(enEp.begin(), enEp.end(), '.', ',');
+
+		file_out << (i + 1) * 100 << "\t" << enEk << "\t" << enEp << "\t" << enE << endl;
 	}
 
 	file_out.close();
+}
+
+double crystall::calc_Ep()
+{
+	double r06 = p6(r0);
+	double r012 = r06 * r06;
+	double r12;
+	double r6;
+	double dx;
+	double dy;
+	double rPow2;
+	double r;
+	double rdiffr;
+	double rdiffr2;
+	double rdiff2 = (r1 - r2) * (r1 - r2);
+	double Kr;
+
+	for (int i = 0; i < N_atom; i++)
+	{
+		for (int j = i + 1; j < N_atom; j++)
+		{
+			dx = setka[i].coord[0] - setka[j].coord[0];
+			dy = setka[i].coord[1] - setka[j].coord[1];
+
+			if (abs(dx) > 0.5 * L * r0)
+				dx -= sign(dx) * L * r0;
+			if (abs(dy) > 0.5 * L * r0)
+				dy -= sign(dy) * L * r0;
+
+			rPow2 = p2(dx) + p2(dy);
+			r = sqrt(rPow2);
+			r6 = rPow2 * rPow2 * rPow2;
+			r12 = r6 * r6;
+
+			if (r > r2) continue;
+			if (r > r1)
+			{
+				rdiffr = r - r1;
+				rdiffr2 = rdiffr * rdiffr;
+				Kr = (1 - rdiffr2 / rdiff2) * (1 - rdiffr2 / rdiff2);
+			}
+			else
+				Kr = 1;
+
+			ep += Kr * D * (r012 / r12 - 2. * r06 / r6);
+		}
+	}
+
+	return ep;
 }
 
 atom::atom(double x, double y)
 {
 	coord.insert(coord.begin(), { x, y });
 	speed.insert(speed.begin(), { 0, 0 });
-	Fk.insert(Fk.begin(), { 0, 0 });
+	Fk_cur = vector<double>(2, 0);
+	Fk_prev = vector<double>(2, 0);
 }
 
 void atom::SetSpeed(double vx, double vy)
