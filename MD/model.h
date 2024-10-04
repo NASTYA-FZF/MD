@@ -92,6 +92,10 @@ public:
 	void printEnergy(std::string fileName);
 
 	double calc_Ep();
+
+	std::vector<double> PKF(std::string fileName);
+
+	void printPKF(std::string fileName);
 };
 
 //вычисление модуля начальной скорости по температуре

@@ -107,7 +107,7 @@ void CMDDlg::SetParamMult()
 void CMDDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
-	argon = crystall(200);
+	argon = crystall(900);
 	
 	flag_stop = false;
 	flag_sleep = false;
@@ -130,8 +130,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	CMDDlg* my_process = (CMDDlg*)lpParam;
 	my_process->iter = 1;
 
-	while (my_process->iter < 10000)
-	//while (!my_process->flag_stop)
+	while (my_process->iter < 1000 && !my_process->flag_stop)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);
@@ -142,6 +141,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 		LeaveCriticalSection(&my_process->cs);
 	}
 	my_process->argon.printEnergy("energy.txt");
+	my_process->argon.printPKF("pkf.txt");
 	return 0;
 }
 

@@ -303,6 +303,59 @@ double crystall::calc_Ep()
 	return ep;
 }
 
+std::vector<double> crystall::PKF(std::string fileName)
+{
+	vector<double> my_pkf(100);
+	int pkf_atom = 0;
+	double k = 1.;
+	int L4 = L / 4;
+	int L34 = 3 * L / 4;
+	double dr = 0.05 * r0;
+	double r = 0;
+	int num_kol = 0;
+	double rmax = 5 * r0;
+
+	for (int i = 0; i < N_atom; i++)
+	{
+		if (setka[i].coord[0] < L4 * r0 || setka[i].coord[0] > L34 * r0) continue;
+		if (setka[i].coord[1] < L4 * b || setka[i].coord[1] > L34 * b) continue;
+
+		for (int j = 0; j < N_atom; j++)
+		{
+			if (i == j) continue;
+
+			r = sqrt(p2(setka[i].coord[0] - setka[j].coord[0]) + p2(setka[i].coord[1] - setka[j].coord[1]));
+			if (r > rmax) continue;
+			pkf_atom++;
+			num_kol = floor(r / dr);
+			my_pkf[num_kol] += k / (2. * M_PI * num_kol * dr * dr);
+		}
+	}
+	
+	for (int i = 0; i < my_pkf.size(); i++)
+		my_pkf[i] /= pkf_atom;
+
+	return my_pkf;
+}
+
+void crystall::printPKF(std::string fileName)
+{
+	auto _pkf = PKF("null");
+	double dr = 0.05 * r0;
+	ofstream file_out(fileName);
+	string str_pkf;
+	for (int i = 0; i < _pkf.size(); i++)
+	{
+		str_pkf = to_string(_pkf[i]);
+
+		replace(str_pkf.begin(), str_pkf.end(), '.', ',');
+
+		file_out << i * dr << "\t" << str_pkf << endl;
+	}
+
+	file_out.close();
+}
+
 atom::atom(double x, double y)
 {
 	coord.insert(coord.begin(), { x, y });
