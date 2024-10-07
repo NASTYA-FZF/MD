@@ -56,6 +56,7 @@ class crystall
 	double T;
 	double bet, ek, ep;
 	vec2D p;
+	double virial;
 
 	std::vector<double> energyE, energyV, energyEk;
 	//”становить начальные координаты
@@ -99,6 +100,8 @@ public:
 	void printPKF(std::string fileName);
 
 	double SredP(int iter);
+
+	double pVirial(int iter);
 };
 
 //вычисление модул€ начальной скорости по температуре

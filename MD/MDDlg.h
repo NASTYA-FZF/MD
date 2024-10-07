@@ -40,6 +40,7 @@ public:
 	void SetParamMult();
 	int iter;
 	double p;
+	double p_virial;
 	afx_msg void OnBnClickedOk();
 	CRITICAL_SECTION cs;
 	HANDLE my_thread;
@@ -52,8 +53,10 @@ public:
 	CStatic text_temp;
 	CString str;
 	CString str_p;
+	CString str_virial;
 	CStatic text_iteration;
 	CStatic text_p;
+	CStatic text_virial;
 };
 
 DWORD WINAPI MyThreadFunction(LPVOID lpParam);

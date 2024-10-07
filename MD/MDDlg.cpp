@@ -30,6 +30,7 @@ void CMDDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TEMP, text_temp);
 	DDX_Control(pDX, IDC_ITERATION, text_iteration);
 	DDX_Control(pDX, IDC_P, text_p);
+	DDX_Control(pDX, IDC_PVIRIAL, text_virial);
 }
 
 BEGIN_MESSAGE_MAP(CMDDlg, CDialogEx)
@@ -143,6 +144,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 		EnterCriticalSection(&my_process->cs);
 		my_process->argon.OneIterationVerle(my_process->iter);
 		my_process->p = my_process->argon.SredP(my_process->iter);
+		my_process->p_virial = my_process->argon.pVirial(my_process->iter);
 		my_process->iter++;
 		LeaveCriticalSection(&my_process->cs);
 	}
@@ -159,9 +161,11 @@ void CMDDlg::OnTimer(UINT_PTR nIDEvent)
 	pic_evolution.atoms = argon.GetPos(); //считываем по кнопке координаты атомов
 	str.Format(L"Итерация: %d/20 000", iter);
 	str_p.Format(L"Давление (методом потока): %f", p);
+	str_virial.Format(L"Давление(методом вириала): %f", p_virial);
 	LeaveCriticalSection(&cs);
 	text_iteration.SetWindowTextW(str);
 	text_p.SetWindowTextW(str_p);
+	text_virial.SetWindowTextW(str_virial);
 	Invalidate(FALSE);
 	CDialogEx::OnTimer(nIDEvent);
 }

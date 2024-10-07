@@ -103,6 +103,7 @@ crystall::crystall(double _T)
 	sum_V2 = 0;
 	bet = 0;
 	p = vector<double>(2, 0);
+	virial = 0;
 	SetStartCoord();
 	SetStartSpeed(T);
 }
@@ -214,6 +215,7 @@ void crystall::verle_V()
 	{
 		for (int j = 0; j < 2; j++)
 		{
+			virial += setka[i].coord[0] * setka[i].Fk_cur[0] + setka[i].coord[1] * setka[i].Fk_cur[1];
 			setka[i].speed[j] += (setka[i].Fk_cur[j] + setka[i].Fk_prev[j]) * delta_t / (2. * m);
 
 			ek += m * p2(setka[i].speed[j]) / 2;
@@ -385,6 +387,11 @@ atom::atom(double x, double y)
 double crystall::SredP(int iter)
 {
 	return (p[0] / (L * r0) + p[1] / (L * b)) / (iter * delta_t);
+}
+
+double crystall::pVirial(int iter)
+{
+	return (N_atom * T) / (L * L * r0 * b) + 0.5 * virial / (L * L * r0 * b * iter * delta_t);
 }
 
 void atom::SetSpeed(double vx, double vy)
