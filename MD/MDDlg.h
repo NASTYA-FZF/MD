@@ -39,6 +39,7 @@ public:
 	//установка параметров рисовальщика (максимумов, минимумов, радиуса)
 	void SetParamMult();
 	int iter;
+	double p;
 	afx_msg void OnBnClickedOk();
 	CRITICAL_SECTION cs;
 	HANDLE my_thread;
@@ -50,7 +51,9 @@ public:
 	afx_msg void OnBnClickedStop();
 	CStatic text_temp;
 	CString str;
+	CString str_p;
 	CStatic text_iteration;
+	CStatic text_p;
 };
 
 DWORD WINAPI MyThreadFunction(LPVOID lpParam);

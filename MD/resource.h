@@ -9,6 +9,8 @@
 #define IDC_STOP                        1002
 #define IDC_TEMP                        1004
 #define IDC_ITERATION                   1005
+#define IDC_ITERATION2                  1006
+#define IDC_P                           1006
 
 // Next default values for new objects
 // 

@@ -48,7 +48,7 @@ void crystall::SetStartSpeed(double T)
 		setka[i].Minus_dv(sum_vx, sum_vy); //вычитаем вычисленные поправки
 	}
 
-	ControlSpeed(); //проверка в отладке значения суммарного импульма
+	//ControlSpeed(); //проверка в отладке значения суммарного импульма
 }
 
 void crystall::ControlSpeed()
@@ -102,6 +102,7 @@ crystall::crystall(double _T)
 	T = _T;
 	sum_V2 = 0;
 	bet = 0;
+	p = vector<double>(2, 0);
 	SetStartCoord();
 	SetStartSpeed(T);
 }
@@ -185,10 +186,24 @@ void crystall::verle_coord()
 			setka[i].coord[j] += setka[i].speed[j] * delta_t + setka[i].Fk_prev[j] * p2(delta_t) / (2. * m);
 
 			if (setka[i].coord[j] < 0)
+			{
+				p[j] -= m * setka[i].speed[j];
 				setka[i].coord[j] += L * r0;
+			}
 			else
-				if (setka[i].coord[j] > L * r0)
+			{
+				if (j == 0 && setka[i].coord[j] > L * r0)
+				{
+					p[j] += m * setka[i].speed[j];
 					setka[i].coord[j] -= L * r0;
+				}
+				else
+					if (j == 1 && setka[i].coord[j] > L * b)
+					{
+						p[j] += m * setka[i].speed[j];
+						setka[i].coord[j] -= L * r0;
+					}
+			}
 		}
 	}
 }
@@ -365,6 +380,11 @@ atom::atom(double x, double y)
 	speed.insert(speed.begin(), { 0, 0 });
 	Fk_cur = vector<double>(2, 0);
 	Fk_prev = vector<double>(2, 0);
+}
+
+double crystall::SredP(int iter)
+{
+	return (p[0] / (L * r0) + p[1] / (L * b)) / (iter * delta_t);
 }
 
 void atom::SetSpeed(double vx, double vy)
