@@ -48,7 +48,9 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnBnClickedPause();
 	afx_msg void OnBnClickedStop();
-	CListBox l_process;
+	CStatic text_temp;
+	CString str;
+	CStatic text_iteration;
 };
 
 DWORD WINAPI MyThreadFunction(LPVOID lpParam);

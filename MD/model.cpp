@@ -310,7 +310,8 @@ std::vector<double> crystall::PKF(std::string fileName)
 	double k = 1.;
 	int L4 = L / 4;
 	int L34 = 3 * L / 4;
-	double dr = 0.05 * r0;
+	double part_r0 = 0.05;
+	double dr = part_r0 * r0;
 	double r = 0;
 	int num_kol = 0;
 	double rmax = 5 * r0;
@@ -328,12 +329,12 @@ std::vector<double> crystall::PKF(std::string fileName)
 			if (r > rmax) continue;
 			pkf_atom++;
 			num_kol = floor(r / dr);
-			my_pkf[num_kol] += k / (2. * M_PI * num_kol * dr * dr);
+			my_pkf[num_kol] += k / (2. * M_PI * (num_kol + 1) * part_r0);
 		}
 	}
 	
-	for (int i = 0; i < my_pkf.size(); i++)
-		my_pkf[i] /= pkf_atom;
+	/*for (int i = 0; i < my_pkf.size(); i++)
+		my_pkf[i] /= pkf_atom;*/
 
 	return my_pkf;
 }
@@ -341,16 +342,18 @@ std::vector<double> crystall::PKF(std::string fileName)
 void crystall::printPKF(std::string fileName)
 {
 	auto _pkf = PKF("null");
-	double dr = 0.05 * r0;
+	double dr = 0.05;
 	ofstream file_out(fileName);
-	string str_pkf;
+	string str_pkf, str_dr;
 	for (int i = 0; i < _pkf.size(); i++)
 	{
 		str_pkf = to_string(_pkf[i]);
+		str_dr = to_string((i + 1) * dr);
 
 		replace(str_pkf.begin(), str_pkf.end(), '.', ',');
+		replace(str_dr.begin(), str_dr.end(), '.', ',');
 
-		file_out << i * dr << "\t" << str_pkf << endl;
+		file_out << str_dr << "\t" << str_pkf << endl;
 	}
 
 	file_out.close();

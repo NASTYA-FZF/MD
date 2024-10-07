@@ -27,7 +27,8 @@ void CMDDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EVOLUTION, pic_evolution);
-	DDX_Control(pDX, IDC_LIST1, l_process);
+	DDX_Control(pDX, IDC_TEMP, text_temp);
+	DDX_Control(pDX, IDC_ITERATION, text_iteration);
 }
 
 BEGIN_MESSAGE_MAP(CMDDlg, CDialogEx)
@@ -107,7 +108,10 @@ void CMDDlg::SetParamMult()
 void CMDDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
-	argon = crystall(900);
+	int T = 100;
+	argon = crystall(T);
+	str.Format(L"Температура: %d", T);
+	text_temp.SetWindowTextW(str);
 	
 	flag_stop = false;
 	flag_sleep = false;
@@ -130,7 +134,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	CMDDlg* my_process = (CMDDlg*)lpParam;
 	my_process->iter = 1;
 
-	while (my_process->iter < 1000 && !my_process->flag_stop)
+	while (my_process->iter < 20000 && !my_process->flag_stop)
 	{
 		if (my_process->flag_sleep)
 			Sleep(10);
@@ -151,10 +155,9 @@ void CMDDlg::OnTimer(UINT_PTR nIDEvent)
 	// TODO: добавьте свой код обработчика сообщений или вызов стандартного
 	EnterCriticalSection(&cs);
 	pic_evolution.atoms = argon.GetPos(); //считываем по кнопке координаты атомов
-	CString str;
-	str.Format(L"%d", iter);
-	l_process.InsertString(-1, str);
+	str.Format(L"Итерация: %d/20 000", iter);
 	LeaveCriticalSection(&cs);
+	text_iteration.SetWindowTextW(str);
 	Invalidate(FALSE);
 	CDialogEx::OnTimer(nIDEvent);
 }
