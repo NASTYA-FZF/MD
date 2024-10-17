@@ -67,6 +67,12 @@ public:
 	int iter_calc;
 	int iter_maximum;
 	CStatic text_R2;
+	bool animation;
+	CButton r_anim;
+	CButton r_not;
+	afx_msg void OnBnClickedRyes();
+	afx_msg void OnBnClickedRnot();
+	afx_msg void OnBnClickedButton1();
 };
 
 DWORD WINAPI MyThreadFunction(LPVOID lpParam);

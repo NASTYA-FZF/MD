@@ -43,6 +43,8 @@ void CMDDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT4, iter_calc);
 	DDX_Text(pDX, IDC_EDIT5, iter_maximum);
 	DDX_Control(pDX, IDC_R2, text_R2);
+	DDX_Control(pDX, IDC_RYES, r_anim);
+	DDX_Control(pDX, IDC_RNOT, r_not);
 }
 
 BEGIN_MESSAGE_MAP(CMDDlg, CDialogEx)
@@ -52,6 +54,9 @@ BEGIN_MESSAGE_MAP(CMDDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_PAUSE, &CMDDlg::OnBnClickedPause)
 	ON_BN_CLICKED(IDC_STOP, &CMDDlg::OnBnClickedStop)
+	ON_BN_CLICKED(IDC_RYES, &CMDDlg::OnBnClickedRyes)
+	ON_BN_CLICKED(IDC_RNOT, &CMDDlg::OnBnClickedRnot)
+	ON_BN_CLICKED(IDC_BUTTON1, &CMDDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -68,6 +73,9 @@ BOOL CMDDlg::OnInitDialog()
 
 	SetParamMult(); //при запуске расчитываем все параметры рисовальщика
 	InitializeCriticalSection(&cs);
+	animation = false;
+	r_anim.SetCheck(BST_UNCHECKED);
+	r_not.SetCheck(BST_CHECKED);
 	// TODO: добавьте дополнительную инициализацию
 
 	return TRUE;  // возврат значения TRUE, если фокус не передан элементу управления
@@ -152,7 +160,9 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	{
 		if (my_process->flag_sleep)
 			continue;
-		Sleep(10);
+		
+		if (my_process->animation)
+			Sleep(10);
 		my_process->argon.OneIterationVerle(my_process->iter);
 		EnterCriticalSection(&my_process->cs);
 		my_process->iter++;
@@ -198,7 +208,8 @@ void CMDDlg::OnTimer(UINT_PTR nIDEvent)
 	text_temp.SetWindowTextW(str_T);
 	text_H.SetWindowTextW(str_H);
 	text_R2.SetWindowTextW(str_R2);
-	Invalidate(FALSE);
+	if (animation)
+		Invalidate(FALSE);
 	CDialogEx::OnTimer(nIDEvent);
 }
 
@@ -215,4 +226,30 @@ void CMDDlg::OnBnClickedStop()
 	// TODO: добавьте свой код обработчика уведомлений
 	flag_stop = true;
 	KillTimer(my_timer);
+}
+
+
+void CMDDlg::OnBnClickedRyes()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+	animation = true;
+	r_anim.SetCheck(BST_CHECKED);
+	r_not.SetCheck(BST_UNCHECKED);
+}
+
+
+void CMDDlg::OnBnClickedRnot()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+	animation = false;
+	r_anim.SetCheck(BST_UNCHECKED);
+	r_not.SetCheck(BST_CHECKED);
+}
+
+
+void CMDDlg::OnBnClickedButton1()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+	pic_evolution.atoms = argon.GetPos();
+	Invalidate(FALSE);
 }
