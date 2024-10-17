@@ -302,7 +302,6 @@ void crystall::OneIterationVerle(int iter)
 		calcPVirial = pVirial(razn_iter);
 		LeaveCriticalSection(&cs_calcPVirial);
 
-		//R2_iter += CalcR2();
 		EnterCriticalSection(&cs_R2);
 		R2t = CalcR2();
 		LeaveCriticalSection(&cs_R2);
@@ -485,6 +484,53 @@ double crystall::CalcR2()
 	LeaveCriticalSection(&cs_setka);
 
 	return res / N_atom;
+}
+
+void crystall::printAverage(std::string fileName, int iter)
+{
+	ofstream file_out(fileName);
+	string str;
+
+	str = to_string(calcT);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string(ek_iter / (iter - iter_calc) / eV);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string(ep_iter / (iter - iter_calc) / eV);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string((ek_iter + ep_iter) / (iter - iter_calc) / eV);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string(calcP * p2(L) * r0 * b / eV);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string(calcPVirial * p2(L) * r0 * b / eV);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string(H / eV);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << "\t";
+
+	str = to_string(R2t * 1e18);
+	replace(str.begin(), str.end(), '.', ',');
+	file_out << str << endl;
+
+	file_out.close();
+}
+
+void crystall::print(std::string fileNameEnergy, std::string fileNamePKF, std::string fileNameAve, int iter)
+{
+	printEnergy(fileNameEnergy);
+	printPKF(fileNamePKF);
+	printAverage(fileNameAve, iter);
 }
 
 void atom::SetSpeed(double vx, double vy)

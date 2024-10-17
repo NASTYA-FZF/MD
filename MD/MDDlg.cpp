@@ -159,8 +159,7 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 		LeaveCriticalSection(&my_process->cs);
 	}
 	my_process->KillTimer(my_process->my_timer);
-	my_process->argon.printEnergy("energy.txt");
-	my_process->argon.printPKF("pkf.txt");
+	my_process->argon.print("energy.txt", "pkf.txt", "average.txt", my_process->iter);
 	return 0;
 }
 
@@ -177,20 +176,20 @@ void CMDDlg::OnTimer(UINT_PTR nIDEvent)
 	LeaveCriticalSection(&cs);
 
 	EnterCriticalSection(&argon.cs_calcP);
-	str_p.Format(L"Давление (методом потока): %f", argon.calcP);
-	str_H.Format(L"Энтальпия: %E", argon.H);
+	str_p.Format(L"Давление (методом потока): %f Па", argon.calcP);
+	str_H.Format(L"Энтальпия: %E Дж", argon.H);
 	LeaveCriticalSection(&argon.cs_calcP);
 
 	EnterCriticalSection(&argon.cs_calcPVirial);
-	str_virial.Format(L"Давление(методом вириала): %f", argon.calcPVirial);
+	str_virial.Format(L"Давление(методом вириала): %f Па", argon.calcPVirial);
 	LeaveCriticalSection(&argon.cs_calcPVirial);
 
 	EnterCriticalSection(&argon.cs_calcT);
-	str_T.Format(L"Температура: %.f", argon.calcT);
+	str_T.Format(L"Температура: %.f К", argon.calcT);
 	LeaveCriticalSection(&argon.cs_calcT);
 
 	EnterCriticalSection(&argon.cs_R2);
-	str_R2.Format(L"Средний квадрат смещения: %E", argon.R2t);
+	str_R2.Format(L"Средний квадрат смещения: %E м^2", argon.R2t);
 	LeaveCriticalSection(&argon.cs_R2);
 
 	text_iteration.SetWindowTextW(str);

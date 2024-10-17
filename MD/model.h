@@ -129,6 +129,10 @@ public:
 	void RememberCoord();
 
 	double CalcR2();
+	
+	void printAverage(std::string fileName, int iter);
+
+	void print(std::string fileNameEnergy, std::string fileNamePKF, std::string fileNameAve, int iter);
 };
 
 //вычисление модуля начальной скорости по температуре
