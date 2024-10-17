@@ -54,9 +54,19 @@ public:
 	CString str;
 	CString str_p;
 	CString str_virial;
+	CString str_T;
+	CString str_H;
+	CString str_R2;
 	CStatic text_iteration;
 	CStatic text_p;
 	CStatic text_virial;
+	CStatic text_H;
+	double T;
+	double delta_tau;
+	int iter_norm;
+	int iter_calc;
+	int iter_maximum;
+	CStatic text_R2;
 };
 
 DWORD WINAPI MyThreadFunction(LPVOID lpParam);

@@ -83,6 +83,7 @@ void crystall::perenormirovka()
 	bet = betta();
 	sum_V2 = 0;
 
+	EnterCriticalSection(&cs_setka);
 	for (int i = 0; i < N_atom; i++)
 	{
 		for (int j = 0; j < 2; j++)
@@ -90,6 +91,7 @@ void crystall::perenormirovka()
 			setka[i].speed[j] *= bet;
 		}
 	}
+	LeaveCriticalSection(&cs_setka);
 }
 
 int sign(double dx)
@@ -97,8 +99,14 @@ int sign(double dx)
 	return dx >= 0 ? 1 : -1;
 }
 
-crystall::crystall(double _T)
+crystall::crystall(double _T, double d_t, int iter_norm, int it)
 {
+	InitializeCriticalSection(&cs_setka);
+	InitializeCriticalSection(&cs_calcP);
+	InitializeCriticalSection(&cs_calcPVirial);
+	InitializeCriticalSection(&cs_calcT);
+	InitializeCriticalSection(&cs_H);
+	InitializeCriticalSection(&cs_R2);
 	T = _T;
 	sum_V2 = 0;
 	bet = 0;
@@ -106,6 +114,19 @@ crystall::crystall(double _T)
 	virial = 0;
 	SetStartCoord();
 	SetStartSpeed(T);
+	delta_t = d_t * 2 * 1e-12;
+	S = iter_norm;
+	iter_calc = it;
+}
+
+crystall::~crystall()
+{
+	DeleteCriticalSection(&cs_setka);
+	DeleteCriticalSection(&cs_calcP);
+	DeleteCriticalSection(&cs_calcPVirial);
+	DeleteCriticalSection(&cs_calcT);
+	DeleteCriticalSection(&cs_H);
+	DeleteCriticalSection(&cs_R2);
 }
 
 std::vector<std::vector<double>> crystall::GetPos()
@@ -132,17 +153,21 @@ void crystall::len_jons()
 	double Kr;
 	double mnog = 12. * D * r06;
 
+	EnterCriticalSection(&cs_setka);
 	for (int i = 0; i < N_atom; i++)
 	{
 		setka[i].Fk_cur[0] = setka[i].Fk_cur[1] = 0;
 	}
+	LeaveCriticalSection(&cs_setka);
 
 	for (int at = 0; at < N_atom; at++)
 	{
 		for (int i = at + 1; i < N_atom; i++)
 		{
+			EnterCriticalSection(&cs_setka);
 			dx = setka[at].coord[0] - setka[i].coord[0];
 			dy = setka[at].coord[1] - setka[i].coord[1];
+			LeaveCriticalSection(&cs_setka);
 
 			if (abs(dx) > 0.5 * L * r0)
 				dx -= sign(dx) * L * r0;
@@ -169,16 +194,19 @@ void crystall::len_jons()
 			summaX = pered_dx * dx;
 			summaY = pered_dx * dy;
 
+			EnterCriticalSection(&cs_setka);
 			setka[at].Fk_cur[0] += mnog * summaX;
 			setka[at].Fk_cur[1] += mnog * summaY;
 			setka[i].Fk_cur[0] -= mnog * summaX;
 			setka[i].Fk_cur[1] -= mnog * summaY;
+			LeaveCriticalSection(&cs_setka);
 		}
 	}
 }
 
 void crystall::verle_coord()
 {
+	EnterCriticalSection(&cs_setka);
 	for (int i = 0; i < N_atom; i++)
 	{
 		for (int j = 0; j < 2; j++)
@@ -207,10 +235,12 @@ void crystall::verle_coord()
 			}
 		}
 	}
+	LeaveCriticalSection(&cs_setka);
 }
 
 void crystall::verle_V()
 {
+	EnterCriticalSection(&cs_setka);
 	for (int i = 0; i < N_atom; i++)
 	{
 		for (int j = 0; j < 2; j++)
@@ -218,10 +248,13 @@ void crystall::verle_V()
 			virial += setka[i].coord[0] * setka[i].Fk_cur[0] + setka[i].coord[1] * setka[i].Fk_cur[1];
 			setka[i].speed[j] += (setka[i].Fk_cur[j] + setka[i].Fk_prev[j]) * delta_t / (2. * m);
 
+			ek_iter += m * p2(setka[i].speed[j]) / 2;
+			ek_T += m * p2(setka[i].speed[j]) / 2;
 			ek += m * p2(setka[i].speed[j]) / 2;
 			sum_V2 += m * p2(setka[i].speed[j]) / S;
 		}
 	}
+	LeaveCriticalSection(&cs_setka);
 }
 
 void crystall::OneIterationVerle(int iter)
@@ -231,6 +264,8 @@ void crystall::OneIterationVerle(int iter)
 		len_jons();
 		ep = ek = 0;
 	}
+
+	ek_T = 0;
 
 	verle_coord();
 	len_jons();
@@ -249,6 +284,32 @@ void crystall::OneIterationVerle(int iter)
 	{
 		perenormirovka();
 	}
+
+	if (iter == iter_calc)
+	{
+		R2_iter = R2t = ep_iter = ek_iter = p[0] = p[1] = virial = 0;
+		RememberCoord();
+	}
+
+	if (iter > iter_calc)
+	{
+		razn_iter = iter - iter_calc;
+		EnterCriticalSection(&cs_calcP);
+		calcP = SredP(razn_iter);
+		H = (ep_iter + ek_iter) / razn_iter + calcP * p2(L) * r0 * b;
+		LeaveCriticalSection(&cs_calcP);
+		EnterCriticalSection(&cs_calcPVirial);
+		calcPVirial = pVirial(razn_iter);
+		LeaveCriticalSection(&cs_calcPVirial);
+
+		//R2_iter += CalcR2();
+		EnterCriticalSection(&cs_R2);
+		R2t = CalcR2();
+		LeaveCriticalSection(&cs_R2);
+	}
+	EnterCriticalSection(&cs_calcT);
+	calcT = ek_T / (k_B * N_atom);
+	LeaveCriticalSection(&cs_calcT);
 }
 
 void crystall::printEnergy(string fileName)
@@ -290,8 +351,10 @@ double crystall::calc_Ep()
 	{
 		for (int j = i + 1; j < N_atom; j++)
 		{
+			EnterCriticalSection(&cs_setka);
 			dx = setka[i].coord[0] - setka[j].coord[0];
 			dy = setka[i].coord[1] - setka[j].coord[1];
+			LeaveCriticalSection(&cs_setka);
 
 			if (abs(dx) > 0.5 * L * r0)
 				dx -= sign(dx) * L * r0;
@@ -314,6 +377,7 @@ double crystall::calc_Ep()
 				Kr = 1;
 
 			ep += Kr * D * (r012 / r12 - 2. * r06 / r6);
+			ep_iter += Kr * D * (r012 / r12 - 2. * r06 / r6);
 		}
 	}
 
@@ -335,14 +399,18 @@ std::vector<double> crystall::PKF(std::string fileName)
 
 	for (int i = 0; i < N_atom; i++)
 	{
+		EnterCriticalSection(&cs_setka);
 		if (setka[i].coord[0] < L4 * r0 || setka[i].coord[0] > L34 * r0) continue;
 		if (setka[i].coord[1] < L4 * b || setka[i].coord[1] > L34 * b) continue;
+		LeaveCriticalSection(&cs_setka);
 
 		for (int j = 0; j < N_atom; j++)
 		{
 			if (i == j) continue;
 
+			EnterCriticalSection(&cs_setka);
 			r = sqrt(p2(setka[i].coord[0] - setka[j].coord[0]) + p2(setka[i].coord[1] - setka[j].coord[1]));
+			LeaveCriticalSection(&cs_setka);
 			if (r > rmax) continue;
 			pkf_atom++;
 			num_kol = floor(r / dr);
@@ -391,7 +459,32 @@ double crystall::SredP(int iter)
 
 double crystall::pVirial(int iter)
 {
-	return (N_atom * T) / (L * L * r0 * b) + 0.5 * virial / (L * L * r0 * b * iter * delta_t);
+	return (N_atom * k_B * T) / (L * L * r0 * b) + 0.5 * virial / (L * L * r0 * b * iter);
+}
+
+void crystall::RememberCoord()
+{
+	EnterCriticalSection(&cs_setka);
+	for (int i = 0; i < N_atom; i++)
+	{
+		setka[i].x1 = setka[i].coord[0];
+		setka[i].y1 = setka[i].coord[1];
+	}
+	LeaveCriticalSection(&cs_setka);
+}
+
+double crystall::CalcR2()
+{
+	double res = 0;
+
+	EnterCriticalSection(&cs_setka);
+	for (int i = 0; i < N_atom; i++)
+	{
+		res += p2(setka[i].coord[0] - setka[i].x1) + p2(setka[i].coord[1] - setka[i].y1);
+	}
+	LeaveCriticalSection(&cs_setka);
+
+	return res / N_atom;
 }
 
 void atom::SetSpeed(double vx, double vy)

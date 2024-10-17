@@ -19,6 +19,11 @@
 
 CMDDlg::CMDDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MD_DIALOG, pParent)
+	, T(100)
+	, delta_tau(0.005)
+	, iter_norm(10)
+	, iter_calc(15000)
+	, iter_maximum(30000)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -31,6 +36,13 @@ void CMDDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_ITERATION, text_iteration);
 	DDX_Control(pDX, IDC_P, text_p);
 	DDX_Control(pDX, IDC_PVIRIAL, text_virial);
+	DDX_Control(pDX, IDC_H, text_H);
+	DDX_Text(pDX, IDC_EDIT1, T);
+	DDX_Text(pDX, IDC_EDIT2, delta_tau);
+	DDX_Text(pDX, IDC_EDIT3, iter_norm);
+	DDX_Text(pDX, IDC_EDIT4, iter_calc);
+	DDX_Text(pDX, IDC_EDIT5, iter_maximum);
+	DDX_Control(pDX, IDC_R2, text_R2);
 }
 
 BEGIN_MESSAGE_MAP(CMDDlg, CDialogEx)
@@ -110,8 +122,8 @@ void CMDDlg::SetParamMult()
 void CMDDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
-	double T = 20;
-	argon = crystall(T);
+	UpdateData();
+	argon = crystall(T, delta_tau, iter_norm, iter_calc);
 	str.Format(L"Температура: %.f", T);
 	text_temp.SetWindowTextW(str);
 	
@@ -136,18 +148,17 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 	CMDDlg* my_process = (CMDDlg*)lpParam;
 	my_process->iter = 1;
 
-	while (my_process->iter < 20000 && !my_process->flag_stop)
+	while (my_process->iter <= my_process->iter_maximum && !my_process->flag_stop)
 	{
 		if (my_process->flag_sleep)
-			Sleep(10);
+			continue;
 		Sleep(10);
-		EnterCriticalSection(&my_process->cs);
 		my_process->argon.OneIterationVerle(my_process->iter);
-		my_process->p = my_process->argon.SredP(my_process->iter);
-		my_process->p_virial = my_process->argon.pVirial(my_process->iter);
+		EnterCriticalSection(&my_process->cs);
 		my_process->iter++;
 		LeaveCriticalSection(&my_process->cs);
 	}
+	my_process->KillTimer(my_process->my_timer);
 	my_process->argon.printEnergy("energy.txt");
 	my_process->argon.printPKF("pkf.txt");
 	return 0;
@@ -157,15 +168,37 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 void CMDDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: добавьте свой код обработчика сообщений или вызов стандартного
-	EnterCriticalSection(&cs);
+	EnterCriticalSection(&argon.cs_setka);
 	pic_evolution.atoms = argon.GetPos(); //считываем по кнопке координаты атомов
-	str.Format(L"Итерация: %d/20 000", iter);
-	str_p.Format(L"Давление (методом потока): %f", p);
-	str_virial.Format(L"Давление(методом вириала): %f", p_virial);
+	LeaveCriticalSection(&argon.cs_setka);
+
+	EnterCriticalSection(&cs);
+	str.Format(L"Итерация: %d/%d", iter, iter_maximum);
 	LeaveCriticalSection(&cs);
+
+	EnterCriticalSection(&argon.cs_calcP);
+	str_p.Format(L"Давление (методом потока): %f", argon.calcP);
+	str_H.Format(L"Энтальпия: %E", argon.H);
+	LeaveCriticalSection(&argon.cs_calcP);
+
+	EnterCriticalSection(&argon.cs_calcPVirial);
+	str_virial.Format(L"Давление(методом вириала): %f", argon.calcPVirial);
+	LeaveCriticalSection(&argon.cs_calcPVirial);
+
+	EnterCriticalSection(&argon.cs_calcT);
+	str_T.Format(L"Температура: %.f", argon.calcT);
+	LeaveCriticalSection(&argon.cs_calcT);
+
+	EnterCriticalSection(&argon.cs_R2);
+	str_R2.Format(L"Средний квадрат смещения: %E", argon.R2t);
+	LeaveCriticalSection(&argon.cs_R2);
+
 	text_iteration.SetWindowTextW(str);
 	text_p.SetWindowTextW(str_p);
 	text_virial.SetWindowTextW(str_virial);
+	text_temp.SetWindowTextW(str_T);
+	text_H.SetWindowTextW(str_H);
+	text_R2.SetWindowTextW(str_R2);
 	Invalidate(FALSE);
 	CDialogEx::OnTimer(nIDEvent);
 }

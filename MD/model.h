@@ -22,11 +22,11 @@ static int L = 20;
 //посто€нна€ больцмана в ƒж /  
 static double k_B = 1.38 * 1e-23;
 
-static double delta_t = 0.005 * 2 * 1e-12;
+//static double delta_t = 0.005 * 2 * 1e-12;
 
 static double r1 = 1.15 * r0;
 static double r2 = 1.75 * r0;
-static int S = 8;
+//static int S = 8;
 
 //структура, хран€ща€ информацию об атомах
 struct atom
@@ -35,6 +35,8 @@ struct atom
 	vec2D speed;
 	vec2D Fk_prev;
 	vec2D Fk_cur;
+	double x1;
+	double y1;
 
 	//задание координат атома (удобно использовать позже)
 	atom(double x, double y);
@@ -57,6 +59,11 @@ class crystall
 	double bet, ek, ep;
 	vec2D p;
 	double virial;
+	double delta_t;
+	int S;
+	int iter_calc;
+	int razn_iter;
+	double ek_T;
 
 	std::vector<double> energyE, energyV, energyEk;
 	//”становить начальные координаты
@@ -73,10 +80,26 @@ class crystall
 	void perenormirovka();
 
 public:
+	double calcT;
+	double ek_iter;
+	double ep_iter;
+	double H;
+	double calcP;
+	double calcPVirial;
+	double R2t;
+	double R2_iter;
+	CRITICAL_SECTION cs_setka;
+	CRITICAL_SECTION cs_calcP;
+	CRITICAL_SECTION cs_calcPVirial;
+	CRITICAL_SECTION cs_calcT;
+	CRITICAL_SECTION cs_H;
+	CRITICAL_SECTION cs_R2;
 	//конструктор, в котором задаютс€ координаты атомов
 	crystall() { srand(time(NULL)); sum_V2 = 0; N_atom = setka.size(); }
 	//конструктор, в котором задаютс€ начальные координаты и скорости
-	crystall(double _T);
+	crystall(double _T, double d_t, int iter_norm, int it);
+
+	~crystall();
 
 	//возвращает набор координат всех атомов (дл€ рисовальщика)
 	std::vector<std::vector<double>> GetPos();
@@ -102,6 +125,10 @@ public:
 	double SredP(int iter);
 
 	double pVirial(int iter);
+
+	void RememberCoord();
+
+	double CalcR2();
 };
 
 //вычисление модул€ начальной скорости по температуре
