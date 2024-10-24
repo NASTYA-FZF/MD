@@ -52,7 +52,7 @@ void MultikMD::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	//если пустой вектор, то выходим от греха подальше
 	if (atoms.empty())
 	{
-		MessageBox(L"Нет атомов для отрисовки!", L"Ошибка!");
+		//MessageBox(L"Нет атомов для отрисовки!", L"Ошибка!");
 		return;
 	}
 

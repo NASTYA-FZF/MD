@@ -441,6 +441,21 @@ void crystall::printPKF(std::string fileName)
 	}
 
 	file_out.close();
+
+	ofstream my_out("position.txt");
+	auto pos = GetPos();
+	string str_x, str_y;
+	for (int i = 0; i < pos.size(); i++)
+	{
+		str_x = to_string(pos[i][0] / r0);
+		str_y = to_string(pos[i][1] / b);
+
+		replace(str_x.begin(), str_x.end(), '.', ',');
+		replace(str_y.begin(), str_y.end(), '.', ',');
+
+		my_out << str_x << "\t" << str_y << endl;
+	}
+	my_out.close();
 }
 
 atom::atom(double x, double y)
@@ -453,7 +468,7 @@ atom::atom(double x, double y)
 
 double crystall::SredP(int iter)
 {
-	return (p[0] / (L * r0) + p[1] / (L * b)) / (iter * delta_t);
+	return 0.5 * (p[0] / (L * r0) + p[1] / (L * b)) / (iter * delta_t);
 }
 
 double crystall::pVirial(int iter)
@@ -475,11 +490,21 @@ void crystall::RememberCoord()
 double crystall::CalcR2()
 {
 	double res = 0;
+	double dx = 0;
+	double dy = 0;
 
 	EnterCriticalSection(&cs_setka);
 	for (int i = 0; i < N_atom; i++)
 	{
-		res += p2(setka[i].coord[0] - setka[i].x1) + p2(setka[i].coord[1] - setka[i].y1);
+		dx = setka[i].coord[0] - setka[i].x1;
+		dy = setka[i].coord[1] - setka[i].y1;
+
+		if (abs(dx) > 0.5 * L * r0)
+			dx -= sign(dx) * L * r0;
+		if (abs(dy) > 0.5 * L * r0)
+			dy -= sign(dy) * L * r0;
+
+		res += p2(dx) + p2(dy);
 	}
 	LeaveCriticalSection(&cs_setka);
 

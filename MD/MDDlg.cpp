@@ -168,8 +168,8 @@ DWORD __stdcall MyThreadFunction(LPVOID lpParam)
 		my_process->iter++;
 		LeaveCriticalSection(&my_process->cs);
 	}
-	my_process->KillTimer(my_process->my_timer);
 	my_process->argon.print("energy.txt", "pkf.txt", "average.txt", my_process->iter);
+	my_process->KillTimer(my_process->my_timer);
 	return 0;
 }
 
